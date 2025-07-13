@@ -1,41 +1,51 @@
-# مدونة تفاعلية متقدمة - تاسك 7
+# مدونة تفاعلية متقدمة - تاسك 7 & 8
 
-مشروع مدونة تفاعلية متكاملة مبني باستخدام Django REST Framework مع جميع الميزات المتقدمة المطلوبة.
+مشروع مدونة تفاعلية متكاملة مبني باستخدام Django REST Framework مع نظام تحليل وتفاعل ذكي على مراجعات المنتجات.
 
 ## الميزات المطلوبة ✅
 
-### 1. إنشاء مقال (Create Post)
-- ✅ صفحة إنشاء مقال للمستخدم المسجل
-- ✅ الحقول: title، body، category (Dropdown)، author (يُملأ تلقائياً)
-- ✅ التخزين في قاعدة البيانات
-- ✅ ظهور المقال في الصفحة الرئيسية
-
-### 2. نظام التصفية والفرز
-- ✅ تصفية المقالات حسب التصنيف
-- ✅ تصفية المقالات حسب الكاتب
-- ✅ فرز حسب الأحدث والأقدم
-- ✅ فرز أبجدي
-- ✅ بحث في المحتوى
-
-### 3. لوحة تحكم المستخدم (Dashboard)
-- ✅ إحصائيات المستخدم (عدد المقالات، المفضلات، التعليقات)
-- ✅ عرض المقالات الحديثة
-- ✅ إحصائيات التصنيفات
-- ✅ إحصائيات شهرية
-- ✅ إمكانية حذف وتعديل المقالات
-
-### 4. نظام المصادقة المتقدم
-- ✅ تسجيل مستخدمين جدد
-- ✅ تسجيل الدخول والخروج
-- ✅ JWT Authentication
-- ✅ ملف شخصي قابل للتحديث
-
-### 5. ميزات إضافية
-- ✅ نظام الإعجابات
-- ✅ نظام المفضلات
+### تاسك 7 - المدونة التفاعلية ✅
+- ✅ إنشاء مقال (Create Post)
+- ✅ نظام التصفية والفرز
+- ✅ لوحة تحكم المستخدم (Dashboard)
+- ✅ نظام المصادقة المتقدم
+- ✅ نظام الإعجابات والمفضلات
 - ✅ نظام التعليقات
-- ✅ إحصائيات المشاهدات
-- ✅ دعم الصور
+
+### تاسك 8 - نظام تحليل وتفاعل ذكي على مراجعات المنتجات ✅
+
+#### 1. تحليلات (Analytics) ✅
+- ✅ معدل تقييم المنتج خلال فترة زمنية محددة
+- ✅ أكثر المستخدمين كتابةً للمراجعات
+- ✅ المنتجات التي حصلت على أعلى تقييم
+- ✅ مراجعات تحتوي على كلمات معينة (بحث بالكلمات المفتاحية)
+- ✅ تحليل الانطباع (Sentiment Analysis)
+- ✅ إحصائيات شهرية للتقييمات
+
+#### 2. نظام تفاعل (Interactions) ✅
+- ✅ تقييم المراجعات بأنها "مفيدة" أو "غير مفيدة"
+- ✅ عرض عدد الإعجابات وعدم الإعجاب لكل مراجعة
+- ✅ عرض أفضل مراجعة (Top Review) بناءً على تفاعل المستخدمين
+- ✅ نقاط الفائدة (Helpful Score)
+
+#### 3. إشعارات (Notifications) ✅
+- ✅ إشعار عند الموافقة على المراجعة
+- ✅ إشعار عند رفض المراجعة
+- ✅ إشعار عند تحديث المنتج
+- ✅ تحديد الإشعارات كمقروءة
+
+#### 4. نظام تقارير المشرف (Admin Insights) ✅
+- ✅ عدد المراجعات غير الموافق عليها
+- ✅ عدد المراجعات المرفوضة
+- ✅ عدد المراجعات منخفضة التقييم (1-2 نجوم)
+- ✅ تصفية المراجعات المسيئة (قائمة كلمات محظورة)
+- ✅ أفضل المنتجات والمستخدمين
+
+#### 5. تحسينات متقدمة (Advanced) ✅
+- ✅ تصفية آلية للمراجعات المسيئة
+- ✅ تحليل انطباع المراجعة (إيجابي/سلبي/محايد)
+- ✅ ملف المنتج التحليلي
+- ✅ إدارة الكلمات المحظورة
 
 ## التقنيات المستخدمة
 
@@ -45,12 +55,13 @@
 - **Database**: SQLite (قابل للتغيير)
 - **Image Processing**: Pillow
 - **Data Generation**: Faker
+- **Sentiment Analysis**: تحليل انطباع بسيط باللغة العربية
 
 ## التثبيت والتشغيل
 
 ### 1. تثبيت المتطلبات
 ```bash
-pip install -r requirements.txt
+pip install Django==4.2.7 djangorestframework==3.14.0 django-cors-headers==4.3.1 djangorestframework-simplejwt==5.3.0 python-decouple==3.8 django-filter==23.5 Faker==20.1.0
 ```
 
 ### 2. إعداد قاعدة البيانات
@@ -64,9 +75,9 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-### 4. إنشاء بيانات تجريبية (اختياري)
+### 4. إنشاء بيانات تجريبية
 ```bash
-python manage.py create_sample_data --users 10 --categories 5 --posts 50
+python manage.py create_sample_data --users 10 --categories 5 --posts 50 --products 30 --reviews 100
 ```
 
 ### 5. تشغيل الخادم
@@ -93,6 +104,35 @@ python manage.py runserver
 - `POST /api/posts/{id}/favorite/` - إضافة/إزالة من المفضلة
 - `POST /api/posts/{id}/increment_views/` - زيادة المشاهدات
 
+### المنتجات
+- `GET /api/products/` - قائمة المنتجات
+- `POST /api/products/` - إنشاء منتج جديد
+- `GET /api/products/{id}/` - عرض منتج
+- `PUT /api/products/{id}/` - تحديث منتج
+- `DELETE /api/products/{id}/` - حذف منتج
+- `GET /api/products/{id}/analytics/` - تحليلات المنتج
+
+### المراجعات
+- `GET /api/reviews/` - قائمة المراجعات
+- `POST /api/reviews/` - إنشاء مراجعة جديدة
+- `GET /api/reviews/{id}/` - عرض مراجعة
+- `PUT /api/reviews/{id}/` - تحديث مراجعة
+- `DELETE /api/reviews/{id}/` - حذف مراجعة
+- `POST /api/reviews/{id}/approve/` - موافقة على المراجعة
+- `POST /api/reviews/{id}/reject/` - رفض المراجعة
+- `GET /api/reviews/top_reviews/` - أفضل المراجعات
+
+### تفاعلات المراجعات
+- `GET /api/review-interactions/` - قائمة التفاعلات
+- `POST /api/review-interactions/` - إضافة تفاعل
+- `PUT /api/review-interactions/{id}/` - تحديث تفاعل
+- `DELETE /api/review-interactions/{id}/` - حذف تفاعل
+
+### الإشعارات
+- `GET /api/notifications/` - قائمة الإشعارات
+- `POST /api/notifications/{id}/mark_as_read/` - تحديد كمقروء
+- `POST /api/notifications/mark_all_as_read/` - تحديد جميعها كمقروءة
+
 ### التصنيفات
 - `GET /api/categories/` - قائمة التصنيفات
 - `GET /api/categories/{id}/` - عرض تصنيف
@@ -111,65 +151,72 @@ python manage.py runserver
 ### لوحة التحكم
 - `GET /api/dashboard/stats/` - إحصائيات المستخدم
 
+### تقارير الإدارة
+- `GET /api/admin-reports/overview/` - نظرة عامة على النظام
+
+### الكلمات المحظورة
+- `GET /api/banned-words/` - قائمة الكلمات المحظورة
+- `POST /api/banned-words/` - إضافة كلمة محظورة
+- `PUT /api/banned-words/{id}/` - تحديث كلمة محظورة
+- `DELETE /api/banned-words/{id}/` - حذف كلمة محظورة
+
 ## أمثلة الاستخدام
 
-### تسجيل مستخدم جديد
+### إنشاء مراجعة جديدة
 ```bash
-curl -X POST http://localhost:8000/api/auth/register/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "email": "test@example.com",
-    "password": "password123",
-    "password2": "password123",
-    "first_name": "أحمد",
-    "last_name": "محمد"
-  }'
-```
-
-### تسجيل الدخول
-```bash
-curl -X POST http://localhost:8000/api/auth/login/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "password": "password123"
-  }'
-```
-
-### إنشاء مقال جديد
-```bash
-curl -X POST http://localhost:8000/api/posts/ \
+curl -X POST http://localhost:8000/api/reviews/ \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "مقال تجريبي",
-    "content": "محتوى المقال هنا...",
-    "excerpt": "ملخص المقال",
-    "category_id": 1,
-    "status": "published"
+    "product_id": 1,
+    "rating": 5,
+    "title": "منتج ممتاز",
+    "content": "هذا المنتج رائع جداً وأداؤه ممتاز"
   }'
 ```
 
-### تصفية وفرز المقالات
+### تحليلات المنتج
 ```bash
-# تصفية حسب التصنيف
-GET /api/posts/?category=1
+curl -X GET http://localhost:8000/api/products/1/analytics/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
 
-# تصفية حسب الكاتب
-GET /api/posts/?author=1
+### تقييم مراجعة كمفيدة
+```bash
+curl -X POST http://localhost:8000/api/review-interactions/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "review_id": 1,
+    "interaction_type": "helpful"
+  }'
+```
+
+### موافقة على مراجعة
+```bash
+curl -X POST http://localhost:8000/api/reviews/1/approve/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### تصفية وفرز المراجعات
+```bash
+# تصفية حسب المنتج
+GET /api/reviews/?product=1
+
+# تصفية حسب التقييم
+GET /api/reviews/?rating=5
+
+# تصفية حسب الانطباع
+GET /api/reviews/?sentiment=positive
 
 # فرز حسب الأحدث
-GET /api/posts/?ordering=-created_at
+GET /api/reviews/?ordering=-created_at
 
-# فرز حسب الأقدم
-GET /api/posts/?ordering=created_at
-
-# فرز أبجدي
-GET /api/posts/?ordering=title
+# فرز حسب نقاط الفائدة
+GET /api/reviews/?ordering=-helpful_votes
 
 # بحث في المحتوى
-GET /api/posts/?search=كلمة البحث
+GET /api/reviews/?search=ممتاز
 ```
 
 ## هيكل المشروع
@@ -180,7 +227,7 @@ yasmeen-ai-task7/
 │   ├── settings.py       # إعدادات Django
 │   ├── urls.py          # URLs الرئيسية
 │   └── wsgi.py          # إعدادات WSGI
-├── blog/                 # تطبيق المدونة
+├── blog/                 # تطبيق المدونة والمنتجات
 │   ├── models.py        # نماذج البيانات
 │   ├── views.py         # Views للـ API
 │   ├── serializers.py   # Serializers
@@ -198,33 +245,61 @@ yasmeen-ai-task7/
 └── README.md           # هذا الملف
 ```
 
+## النماذج الجديدة (تاسك 8)
+
+### Product (المنتج)
+- معلومات المنتج الأساسية
+- التصنيف والسعر
+- متوسط التقييم وعدد المراجعات
+- توزيع التقييمات
+
+### Review (المراجعة)
+- تقييم المستخدم (1-5 نجوم)
+- عنوان ومحتوى المراجعة
+- حالة الموافقة/الرفض
+- تحليل الانطباع
+- نقاط الفائدة
+
+### ReviewInteraction (تفاعل المراجعة)
+- تقييم المراجعة كمفيدة/غير مفيدة
+- ربط المستخدم بالمراجعة
+
+### Notification (الإشعارات)
+- أنواع مختلفة من الإشعارات
+- حالة القراءة
+- ربط بالكائنات المرتبطة
+
+### BannedWord (الكلمات المحظورة)
+- قائمة الكلمات المحظورة
+- فحص تلقائي للمراجعات
+
 ## الميزات الإضافية
 
-### 1. نظام الإعجابات
-- يمكن للمستخدمين الإعجاب بالمقالات
-- عرض عدد الإعجابات لكل مقال
-- إمكانية إلغاء الإعجاب
+### 1. تحليل الانطباع الذكي
+- تحليل تلقائي لمحتوى المراجعات
+- تصنيف إيجابي/سلبي/محايد
+- قائمة كلمات عربية للتحليل
 
-### 2. نظام المفضلات
-- إضافة المقالات إلى المفضلة
-- عرض قائمة المفضلات للمستخدم
-- إزالة المقالات من المفضلة
+### 2. نظام التفاعل المتقدم
+- تقييم المراجعات من قبل المستخدمين
+- حساب نقاط الفائدة
+- تحديد أفضل المراجعات
 
-### 3. نظام التعليقات
-- إضافة تعليقات على المقالات
-- دعم الردود على التعليقات
-- نظام موافقة على التعليقات
+### 3. إشعارات ذكية
+- إشعارات تلقائية عند الموافقة/الرفض
+- إدارة حالة القراءة
+- أنواع مختلفة من الإشعارات
 
-### 4. إحصائيات متقدمة
-- عدد المشاهدات لكل مقال
-- إحصائيات التصنيفات
-- إحصائيات شهرية للمقالات
+### 4. تحليلات متقدمة
+- إحصائيات شهرية
+- تحليل الانطباع
+- أفضل المنتجات والمستخدمين
+- تقارير الإدارة
 
-### 5. أمان متقدم
-- JWT Authentication
+### 5. أمان محسن
+- فحص الكلمات المحظورة
+- نظام موافقة على المراجعات
 - صلاحيات مختلفة للمستخدمين
-- حماية من CSRF
-- CORS support
 
 ## المساهمة
 

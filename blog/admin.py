@@ -1,10 +1,13 @@
 from django.contrib import admin
-from .models import Category, Post, Comment, Favorite
+from .models import (
+    Category, Post, Comment, Favorite, Product, Review, 
+    ReviewInteraction, Notification, BannedWord
+)
 
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug', 'created_at', 'posts_count']
+    list_display = ['name', 'slug', 'created_at', 'posts_count', 'products_count']
     list_filter = ['created_at']
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}
@@ -12,6 +15,64 @@ class CategoryAdmin(admin.ModelAdmin):
     def posts_count(self, obj):
         return obj.posts.count()
     posts_count.short_description = 'عدد المقالات'
+    
+    def products_count(self, obj):
+        return obj.products.count()
+    products_count.short_description = 'عدد المنتجات'
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ['name', 'category', 'price', 'is_active', 'average_rating', 'total_reviews', 'created_at']
+    list_filter = ['category', 'is_active', 'created_at']
+    search_fields = ['name', 'description']
+    prepopulated_fields = {'slug': ('name',)}
+    list_editable = ['is_active', 'price']
+    
+    def average_rating(self, obj):
+        return f"{obj.average_rating:.1f}"
+    average_rating.short_description = 'متوسط التقييم'
+    
+    def total_reviews(self, obj):
+        return obj.total_reviews
+    total_reviews.short_description = 'عدد المراجعات'
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ['user', 'product', 'rating', 'title', 'is_approved', 'is_rejected', 'sentiment', 'helpful_score', 'created_at']
+    list_filter = ['rating', 'is_approved', 'is_rejected', 'sentiment', 'created_at']
+    search_fields = ['title', 'content', 'user__username', 'product__name']
+    list_editable = ['is_approved', 'is_rejected', 'sentiment']
+    readonly_fields = ['helpful_votes', 'unhelpful_votes', 'helpful_score']
+    
+    def helpful_score(self, obj):
+        return f"{obj.helpful_score:.1f}%"
+    helpful_score.short_description = 'نقاط الفائدة'
+
+
+@admin.register(ReviewInteraction)
+class ReviewInteractionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'review', 'interaction_type', 'created_at']
+    list_filter = ['interaction_type', 'created_at']
+    search_fields = ['user__username', 'review__title']
+    readonly_fields = ['created_at']
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['user', 'notification_type', 'title', 'is_read', 'created_at']
+    list_filter = ['notification_type', 'is_read', 'created_at']
+    search_fields = ['user__username', 'title', 'message']
+    list_editable = ['is_read']
+    readonly_fields = ['created_at']
+
+
+@admin.register(BannedWord)
+class BannedWordAdmin(admin.ModelAdmin):
+    list_display = ['word', 'created_at']
+    search_fields = ['word']
+    readonly_fields = ['created_at']
 
 
 @admin.register(Post)
