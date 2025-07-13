@@ -1,0 +1,62 @@
+body {
+    font-family: 'Tajawal', Arial, sans-serif;
+}
+
+#product-details {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #eee;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.product-img {
+    max-width: 180px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #eee;
+}
+
+.star {
+    color: #ffd700;
+    font-size: 1.3em;
+    cursor: pointer;
+}
+.star.gray {
+    color: #ccc;
+}
+
+.review-card {
+    border-bottom: 1px solid #eee;
+    padding: 16px 0;
+}
+.review-card:last-child {
+    border-bottom: none;
+}
+.review-user {
+    font-weight: bold;
+    color: #0d6efd;
+}
+.review-meta {
+    font-size: 0.95em;
+    color: #888;
+}
+.review-actions button {
+    margin-left: 8px;
+}
+.review-actions .active {
+    color: #fff !important;
+    background: #0d6efd !important;
+}
+
+#star-rating .star {
+    font-size: 2em;
+}
+
+@media (max-width: 600px) {
+    #product-details {
+        padding: 12px;
+    }
+    .product-img {
+        max-width: 100px;
+    }
+} 

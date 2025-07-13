@@ -768,3 +768,31 @@ POST /api/review-reports/45/resolve/
 6. **الترتيب**: يمكن ترتيب النتائج بطرق مختلفة
 7. **الاستجابة**: جميع الاستجابات بتنسيق JSON
 8. **التواريخ**: جميع التواريخ بتنسيق ISO 8601 
+
+---
+
+## Task 10 - Frontend Integration Notes
+
+### استهلاك الـ API من الواجهة الجديدة
+
+واجهة المستخدم (HTML/JS) تتعامل مع API مباشرة عبر fetch/axios:
+
+- **جلب تفاصيل المنتج:**
+  - `GET /api/products/<id>/`
+- **جلب المراجعات:**
+  - `GET /api/reviews/?product=<id>&sort=newest`
+- **إرسال مراجعة جديدة:**
+  - `POST /api/reviews/` (يتطلب access_token)
+- **التفاعل مع مراجعة (إعجاب/عدم إعجاب):**
+  - `POST /api/review-interactions/` (يتطلب access_token)
+- **الإبلاغ عن مراجعة:**
+  - `POST /api/review-reports/` (يتطلب access_token)
+
+### ملاحظات:
+- يجب أن يكون access_token محفوظ في localStorage باسم `access_token`.
+- جميع التفاعلات تتطلب تسجيل الدخول.
+- يمكن تغيير رقم المنتج في `script.js` لعرض منتج آخر.
+- يمكن استخدام Live Server أو أي سيرفر محلي لفتح الصفحة frontend/product_reviews.html.
+- إذا كان هناك مشكلة في CORS، يجب ضبط إعدادات Django للسماح بالاتصال من localhost.
+
+--- 

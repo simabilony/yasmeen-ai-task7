@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مراجعات المنتج</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-4">
+        <div id="product-details" class="mb-4"></div>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center mb-3">
+                    <div class="col-md-4 mb-2 mb-md-0">
+                        <select id="filter-stars" class="form-select">
+                            <option value="">كل التقييمات</option>
+                            <option value="5">٥ نجوم</option>
+                            <option value="4">٤ نجوم</option>
+                            <option value="3">٣ نجوم</option>
+                            <option value="2">٢ نجمة</option>
+                            <option value="1">١ نجمة</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-2 mb-md-0">
+                        <select id="sort-reviews" class="form-select">
+                            <option value="newest">الأحدث</option>
+                            <option value="highest_rating">الأعلى تقييمًا</option>
+                            <option value="most_helpful">الأكثر تفاعلاً</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReviewModal">إضافة مراجعة</button>
+                    </div>
+                </div>
+                <div id="reviews-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal لإضافة مراجعة جديدة -->
+    <div class="modal fade" id="addReviewModal" tabindex="-1" aria-labelledby="addReviewModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addReviewModalLabel">إضافة مراجعة جديدة</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+          </div>
+          <div class="modal-body">
+            <form id="review-form">
+              <div class="mb-3">
+                <label class="form-label">التقييم:</label>
+                <div id="star-rating" class="mb-2"></div>
+                <input type="hidden" id="review-rating" name="rating" required>
+              </div>
+              <div class="mb-3">
+                <label for="review-content" class="form-label">نص المراجعة:</label>
+                <textarea class="form-control" id="review-content" name="content" rows="3" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-success">إرسال</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
