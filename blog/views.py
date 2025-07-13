@@ -9,14 +9,14 @@ from datetime import datetime, timedelta
 import re
 from .models import (
     Category, Post, Comment, Favorite, Product, Review, 
-    ReviewInteraction, Notification, BannedWord
+    ReviewInteraction, Notification, BannedWord, ReviewReport
 )
 from .serializers import (
     CategorySerializer, PostSerializer, PostCreateSerializer,
     CommentSerializer, FavoriteSerializer, DashboardSerializer,
     ProductSerializer, ReviewSerializer, ReviewInteractionSerializer,
     NotificationSerializer, ProductAnalyticsSerializer, AdminReportSerializer,
-    BannedWordSerializer
+    BannedWordSerializer, ReviewReportSerializer
 )
 
 
@@ -173,11 +173,43 @@ class ReviewViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['product', 'user', 'rating', 'is_approved', 'sentiment']
     search_fields = ['title', 'content']
-    ordering_fields = ['created_at', 'rating', 'helpful_votes', 'helpful_score']
+    ordering_fields = ['created_at', 'rating', 'helpful_votes', 'helpful_score', 'views_count', 'total_interactions']
     ordering = ['-created_at']
     
     def get_queryset(self):
-        return Review.objects.select_related('user', 'product').prefetch_related('interactions')
+        queryset = Review.objects.select_related('user', 'product').prefetch_related('interactions', 'reports')
+        
+        # تصفية حسب عدد النجوم
+        rating_filter = self.request.query_params.get('rating', None)
+        if rating_filter:
+            try:
+                rating = int(rating_filter)
+                if 1 <= rating <= 5:
+                    queryset = queryset.filter(rating=rating)
+            except ValueError:
+                pass
+        
+        # تصفية حسب الانطباع
+        sentiment_filter = self.request.query_params.get('sentiment', None)
+        if sentiment_filter in ['positive', 'negative', 'neutral']:
+            queryset = queryset.filter(sentiment=sentiment_filter)
+        
+        # ترتيب مخصص
+        sort_by = self.request.query_params.get('sort', None)
+        if sort_by == 'newest':
+            queryset = queryset.order_by('-created_at')
+        elif sort_by == 'highest_rating':
+            queryset = queryset.order_by('-rating', '-created_at')
+        elif sort_by == 'most_helpful':
+            queryset = queryset.order_by('-helpful_votes', '-created_at')
+        elif sort_by == 'most_viewed':
+            queryset = queryset.order_by('-views_count', '-created_at')
+        elif sort_by == 'most_interactive':
+            queryset = queryset.annotate(
+                total_interactions=Count('interactions')
+            ).order_by('-total_interactions', '-created_at')
+        
+        return queryset
     
     def perform_create(self, serializer):
         review = serializer.save()
@@ -185,6 +217,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
         self.analyze_sentiment(review)
         # فحص الكلمات المحظورة
         self.check_banned_words(review)
+        
+        # إرسال رد واضح
+        return Response({
+            'message': 'تم إرسال المراجعة بنجاح',
+            'status': 'pending_approval',
+            'review_id': review.id,
+            'details': 'سيتم مراجعة المراجعة من قبل الإدارة قبل النشر'
+        }, status=status.HTTP_201_CREATED)
     
     def analyze_sentiment(self, review):
         """تحليل انطباع المراجعة"""
@@ -214,6 +254,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 review.is_rejected = True
                 review.save()
                 break
+    
+    @action(detail=True, methods=['post'])
+    def increment_views(self, request, pk=None):
+        """زيادة عداد مشاهدات المراجعة"""
+        review = self.get_object()
+        review.increment_views()
+        return Response({
+            'message': 'تم تحديث عداد المشاهدات',
+            'views_count': review.views_count
+        })
     
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
@@ -262,8 +312,91 @@ class ReviewViewSet(viewsets.ModelViewSet):
             rating__gte=4
         ).order_by('-helpful_score', '-rating')[:10]
         
-        serializer = ReviewSerializer(reviews, many=True)
+        serializer = ReviewSerializer(reviews, many=True, context={'request': request})
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def filtered_reviews(self, request):
+        """مراجعات مصفاة ومرتبة"""
+        queryset = self.get_queryset()
+        
+        # تطبيق المزيد من الفلاتر
+        min_rating = request.query_params.get('min_rating', None)
+        if min_rating:
+            try:
+                min_rating = int(min_rating)
+                if 1 <= min_rating <= 5:
+                    queryset = queryset.filter(rating__gte=min_rating)
+            except ValueError:
+                pass
+        
+        max_rating = request.query_params.get('max_rating', None)
+        if max_rating:
+            try:
+                max_rating = int(max_rating)
+                if 1 <= max_rating <= 5:
+                    queryset = queryset.filter(rating__lte=max_rating)
+            except ValueError:
+                pass
+        
+        # تحديد عدد النتائج
+        limit = request.query_params.get('limit', 20)
+        try:
+            limit = int(limit)
+            if limit > 0:
+                queryset = queryset[:limit]
+        except ValueError:
+            queryset = queryset[:20]
+        
+        serializer = ReviewSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class ReviewReportViewSet(viewsets.ModelViewSet):
+    """ViewSet لبلاغات المراجعات"""
+    serializer_class = ReviewReportSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ['review', 'reason', 'is_resolved']
+    ordering = ['-created_at']
+    
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return ReviewReport.objects.select_related('review', 'reporter')
+        return ReviewReport.objects.filter(reporter=self.request.user).select_related('review')
+    
+    def perform_create(self, serializer):
+        report = serializer.save()
+        
+        # إرسال إشعار للإدارة
+        if self.request.user.is_staff:
+            Notification.objects.create(
+                user=self.request.user,
+                notification_type='review_reported',
+                title='بلاغ جديد عن مراجعة',
+                message=f'تم الإبلاغ عن مراجعة للمنتج "{report.review.product.name}"',
+                related_object_id=report.id
+            )
+        
+        return Response({
+            'message': 'تم إرسال البلاغ بنجاح',
+            'report_id': report.id,
+            'status': 'pending_review'
+        }, status=status.HTTP_201_CREATED)
+    
+    @action(detail=True, methods=['post'])
+    def resolve(self, request, pk=None):
+        """حل البلاغ"""
+        if not request.user.is_staff:
+            return Response({'error': 'غير مصرح لك بحل البلاغات'}, status=status.HTTP_403_FORBIDDEN)
+        
+        report = self.get_object()
+        report.is_resolved = True
+        report.resolved_at = timezone.now()
+        report.admin_notes = request.data.get('admin_notes', '')
+        report.save()
+        
+        return Response({'message': 'تم حل البلاغ بنجاح'})
 
 
 class ReviewInteractionViewSet(viewsets.ModelViewSet):
@@ -430,6 +563,9 @@ class AdminReportViewSet(viewsets.ViewSet):
         # المراجعات منخفضة التقييم
         low_rated_reviews = Review.objects.filter(rating__lte=2).count()
         
+        # المراجعات المبلغ عنها
+        reported_reviews_count = ReviewReport.objects.filter(is_resolved=False).count()
+        
         # أفضل المنتجات
         top_products = Product.objects.annotate(
             avg_rating=Avg('reviews__rating')
@@ -450,6 +586,7 @@ class AdminReportViewSet(viewsets.ViewSet):
             'pending_reviews': pending_reviews,
             'rejected_reviews': rejected_reviews,
             'low_rated_reviews': low_rated_reviews,
+            'reported_reviews_count': reported_reviews_count,
             'top_products': ProductSerializer(top_products, many=True).data,
             'top_reviewers': UserSerializer(top_reviewers, many=True).data,
             'banned_words_count': banned_words_count,

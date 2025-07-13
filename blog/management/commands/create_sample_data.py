@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from blog.models import Category, Post, Comment, Favorite, Product, Review, ReviewInteraction, Notification, BannedWord
+from blog.models import Category, Post, Comment, Favorite, Product, Review, ReviewInteraction, Notification, BannedWord, ReviewReport
 from faker import Faker
 import random
 
@@ -43,6 +43,12 @@ class Command(BaseCommand):
             default=100,
             help='عدد المراجعات المراد إنشاؤها'
         )
+        parser.add_argument(
+            '--reports',
+            type=int,
+            default=20,
+            help='عدد البلاغات المراد إنشاؤها'
+        )
 
     def handle(self, *args, **options):
         self.stdout.write('بدء إنشاء البيانات التجريبية...')
@@ -64,6 +70,9 @@ class Command(BaseCommand):
         
         # إنشاء التفاعلات
         self.create_review_interactions(reviews, users)
+        
+        # إنشاء البلاغات
+        self.create_review_reports(reviews, users, options['reports'])
         
         # إنشاء التعليقات
         self.create_comments(posts, users)
@@ -170,7 +179,8 @@ class Command(BaseCommand):
                 content=fake.text(max_nb_chars=300),
                 is_approved=random.choice([True, True, True, False]),  # 75% موافق عليه
                 helpful_votes=random.randint(0, 50),
-                unhelpful_votes=random.randint(0, 10)
+                unhelpful_votes=random.randint(0, 10),
+                views_count=random.randint(0, 200)  # عداد المشاهدات
             )
             reviews.append(review)
             self.stdout.write(f'تم إنشاء المراجعة: {review.title}')
@@ -190,6 +200,26 @@ class Command(BaseCommand):
                         interaction_type=random.choice(['helpful', 'unhelpful'])
                     )
                     self.stdout.write(f'تم إنشاء تفاعل على: {review.title}')
+
+    def create_review_reports(self, reviews, users, count):
+        report_reasons = ['inappropriate', 'spam', 'fake', 'offensive', 'other']
+        
+        for i in range(count):
+            review = random.choice(reviews)
+            reporter = random.choice(users)
+            
+            # تجنب أن يبلغ المستخدم عن مراجعته الخاصة
+            if review.user != reporter:
+                # تجنب تكرار نفس البلاغ
+                if not ReviewReport.objects.filter(review=review, reporter=reporter).exists():
+                    report = ReviewReport.objects.create(
+                        review=review,
+                        reporter=reporter,
+                        reason=random.choice(report_reasons),
+                        description=fake.text(max_nb_chars=200),
+                        is_resolved=random.choice([True, False])  # 50% محلول
+                    )
+                    self.stdout.write(f'تم إنشاء بلاغ على: {review.title}')
 
     def create_comments(self, posts, users):
         for post in posts:
@@ -227,7 +257,7 @@ class Command(BaseCommand):
             for _ in range(random.randint(2, 5)):
                 review = random.choice(reviews)
                 notification_type = random.choice([
-                    'review_approved', 'review_rejected', 'product_update'
+                    'review_approved', 'review_rejected', 'product_update', 'review_reported'
                 ])
                 
                 if notification_type == 'review_approved':
@@ -236,6 +266,9 @@ class Command(BaseCommand):
                 elif notification_type == 'review_rejected':
                     title = 'تم رفض مراجعتك'
                     message = f'تم رفض مراجعتك للمنتج "{review.product.name}"'
+                elif notification_type == 'review_reported':
+                    title = 'بلاغ جديد عن مراجعة'
+                    message = f'تم الإبلاغ عن مراجعة للمنتج "{review.product.name}"'
                 else:
                     title = 'تحديث المنتج'
                     message = f'تم تحديث المنتج "{review.product.name}"'

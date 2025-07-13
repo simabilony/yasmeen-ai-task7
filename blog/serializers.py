@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Category, Post, Comment, Favorite, Product, Review, ReviewInteraction, Notification, BannedWord
+from .models import Category, Post, Comment, Favorite, Product, Review, ReviewInteraction, Notification, BannedWord, ReviewReport
 
 User = get_user_model()
 
@@ -58,15 +58,19 @@ class ReviewSerializer(serializers.ModelSerializer):
     helpful_score = serializers.ReadOnlyField()
     is_top_review = serializers.ReadOnlyField()
     user_interaction = serializers.SerializerMethodField()
+    views_count = serializers.ReadOnlyField()
+    total_interactions = serializers.ReadOnlyField()
+    has_user_reported = serializers.SerializerMethodField()
     
     class Meta:
         model = Review
         fields = [
             'id', 'product', 'product_id', 'user', 'rating', 'title', 'content',
             'is_approved', 'is_rejected', 'sentiment', 'helpful_votes', 'unhelpful_votes',
-            'helpful_score', 'is_top_review', 'created_at', 'updated_at', 'user_interaction'
+            'helpful_score', 'is_top_review', 'created_at', 'updated_at', 'user_interaction',
+            'views_count', 'total_interactions', 'has_user_reported'
         ]
-        read_only_fields = ['id', 'user', 'is_approved', 'is_rejected', 'sentiment', 'helpful_votes', 'unhelpful_votes', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'is_approved', 'is_rejected', 'sentiment', 'helpful_votes', 'unhelpful_votes', 'created_at', 'updated_at', 'views_count']
     
     def get_user_interaction(self, obj):
         user = self.context['request'].user
@@ -76,8 +80,33 @@ class ReviewSerializer(serializers.ModelSerializer):
                 return interaction.interaction_type
         return None
     
+    def get_has_user_reported(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.reports.filter(reporter=user).exists()
+        return False
+    
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class ReviewReportSerializer(serializers.ModelSerializer):
+    """Serializer لبلاغ المراجعة"""
+    review = ReviewSerializer(read_only=True)
+    review_id = serializers.IntegerField(write_only=True)
+    reporter = UserSerializer(read_only=True)
+    
+    class Meta:
+        model = ReviewReport
+        fields = [
+            'id', 'review', 'review_id', 'reporter', 'reason', 'description',
+            'is_resolved', 'admin_notes', 'created_at', 'resolved_at'
+        ]
+        read_only_fields = ['id', 'reporter', 'is_resolved', 'admin_notes', 'created_at', 'resolved_at']
+    
+    def create(self, validated_data):
+        validated_data['reporter'] = self.context['request'].user
         return super().create(validated_data)
 
 
@@ -226,6 +255,7 @@ class AdminReportSerializer(serializers.Serializer):
     top_reviewers = UserSerializer(many=True)
     banned_words_count = serializers.IntegerField()
     total_notifications = serializers.IntegerField()
+    reported_reviews_count = serializers.IntegerField()
 
 
 class BannedWordSerializer(serializers.ModelSerializer):

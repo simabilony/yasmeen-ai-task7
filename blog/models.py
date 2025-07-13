@@ -148,6 +148,7 @@ class Review(models.Model):
     sentiment = models.CharField(max_length=10, choices=SENTIMENT_CHOICES, blank=True, verbose_name="الانطباع")
     helpful_votes = models.PositiveIntegerField(default=0, verbose_name="أصوات مفيدة")
     unhelpful_votes = models.PositiveIntegerField(default=0, verbose_name="أصوات غير مفيدة")
+    views_count = models.PositiveIntegerField(default=0, verbose_name="عدد المشاهدات")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
     
@@ -159,6 +160,11 @@ class Review(models.Model):
     
     def __str__(self):
         return f'مراجعة {self.user.username} على {self.product.name}'
+    
+    def increment_views(self):
+        """زيادة عداد المشاهدات"""
+        self.views_count += 1
+        self.save(update_fields=['views_count'])
     
     @property
     def helpful_score(self):
@@ -172,6 +178,40 @@ class Review(models.Model):
     def is_top_review(self):
         """هل هي أفضل مراجعة؟"""
         return self.helpful_score >= 80 and self.rating >= 4
+    
+    @property
+    def total_interactions(self):
+        """إجمالي التفاعلات"""
+        return self.helpful_votes + self.unhelpful_votes
+
+
+class ReviewReport(models.Model):
+    """نموذج الإبلاغ عن المراجعة"""
+    REPORT_REASONS = [
+        ('inappropriate', 'محتوى غير مناسب'),
+        ('spam', 'رسائل مزعجة'),
+        ('fake', 'مراجعة مزيفة'),
+        ('offensive', 'محتوى مسيء'),
+        ('other', 'أخرى'),
+    ]
+    
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='reports', verbose_name="المراجعة")
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='review_reports', verbose_name="المبلغ")
+    reason = models.CharField(max_length=20, choices=REPORT_REASONS, verbose_name="سبب البلاغ")
+    description = models.TextField(blank=True, verbose_name="وصف إضافي")
+    is_resolved = models.BooleanField(default=False, verbose_name="تم الحل")
+    admin_notes = models.TextField(blank=True, verbose_name="ملاحظات الإدارة")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ البلاغ")
+    resolved_at = models.DateTimeField(blank=True, null=True, verbose_name="تاريخ الحل")
+    
+    class Meta:
+        verbose_name = "بلاغ مراجعة"
+        verbose_name_plural = "بلاغات المراجعات"
+        unique_together = ['review', 'reporter']  # بلاغ واحد لكل مستخدم لكل مراجعة
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f'بلاغ من {self.reporter.username} على {self.review}'
 
 
 class ReviewInteraction(models.Model):
@@ -203,6 +243,7 @@ class Notification(models.Model):
         ('review_rejected', 'رفض المراجعة'),
         ('review_reply', 'رد على المراجعة'),
         ('product_update', 'تحديث المنتج'),
+        ('review_reported', 'إبلاغ عن مراجعة'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', verbose_name="المستخدم")

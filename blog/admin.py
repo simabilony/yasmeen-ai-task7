@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     Category, Post, Comment, Favorite, Product, Review, 
-    ReviewInteraction, Notification, BannedWord
+    ReviewInteraction, Notification, BannedWord, ReviewReport
 )
 
 
@@ -40,15 +40,32 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ['user', 'product', 'rating', 'title', 'is_approved', 'is_rejected', 'sentiment', 'helpful_score', 'created_at']
+    list_display = ['user', 'product', 'rating', 'title', 'is_approved', 'is_rejected', 'sentiment', 'helpful_score', 'views_count', 'created_at']
     list_filter = ['rating', 'is_approved', 'is_rejected', 'sentiment', 'created_at']
     search_fields = ['title', 'content', 'user__username', 'product__name']
     list_editable = ['is_approved', 'is_rejected', 'sentiment']
-    readonly_fields = ['helpful_votes', 'unhelpful_votes', 'helpful_score']
+    readonly_fields = ['helpful_votes', 'unhelpful_votes', 'helpful_score', 'views_count', 'total_interactions']
     
     def helpful_score(self, obj):
         return f"{obj.helpful_score:.1f}%"
     helpful_score.short_description = 'نقاط الفائدة'
+    
+    def total_interactions(self, obj):
+        return obj.total_interactions
+    total_interactions.short_description = 'إجمالي التفاعلات'
+
+
+@admin.register(ReviewReport)
+class ReviewReportAdmin(admin.ModelAdmin):
+    list_display = ['reporter', 'review', 'reason', 'is_resolved', 'created_at']
+    list_filter = ['reason', 'is_resolved', 'created_at']
+    search_fields = ['reporter__username', 'review__title', 'description']
+    list_editable = ['is_resolved']
+    readonly_fields = ['created_at', 'resolved_at']
+    date_hierarchy = 'created_at'
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('reporter', 'review', 'review__product')
 
 
 @admin.register(ReviewInteraction)
